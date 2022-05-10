@@ -60,13 +60,14 @@ if ((Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\
     }
     else {
         Write-Log "Registry key does not exist...setting $Name value"
-        New-ItemProperty -Path "SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name $Name -PropertyType DWord -Value $Value
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name $Name -PropertyType DWord -Value $Value
     }
     Write-Log 'Successfully disabled Logon Animation'
 }
 catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to disable Logon Animation ERROR: $ErrorMessage"
+}
 
 ## Show "Run as different user"
 Write-Log 'Enabling Run As Different User'
@@ -79,13 +80,14 @@ if ((Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer").PSOb
     }
     else {
         Write-Log "Registry key does not exist...setting $Name value"
-        New-ItemProperty -Path "SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name $Name -PropertyType DWord -Value $Value
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name $Name -PropertyType DWord -Value $Value
     }
     Write-Log 'Successfully enabled Run As Different User'
 }
 catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to enable Run As Different User ERROR: $ErrorMessage"
+}
 
 ## Disable SMB1"
 Write-Log 'Disabling SMB1 Protocol'
@@ -96,6 +98,7 @@ try {
 catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to disable SMB1 Protocol ERROR: $ErrorMessage"
+}
 
 ## Disable PowerShellv2"
 Write-Log 'Disabling PowerShellv2'
@@ -106,6 +109,7 @@ try {
 catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to disable PowerShellv2 ERROR: $ErrorMessage"
+}
 
 ## Enable .NET Framework 3.5"
 Write-Log 'Enabling .NET Framework 3.5'
@@ -116,4 +120,5 @@ try {
 catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to enable .NET Framework 3.5 ERROR: $ErrorMessage"
+}
 
