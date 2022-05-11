@@ -11,16 +11,23 @@ Write-Log 'AIB Customization: Windows Settings'
 
 ## Disable Consumer Features
 Write-Log 'Disabling Windows Consumer Features'
+$Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
 $Name = "DisableWindowsConsumerFeatures"
 $Value = "1"
 try {
-if ((Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent").PSObject.Properties.Name -contains $name) {
-        Write-Log "Registry key already exists...updating $Name value"
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name $Name -Value $Value
+    if ((Get-ItemProperty $Key).PSObject.Properties.Name -contains $name) {
+            Write-Log "Registry key already exists...updating $Name value"
+            Set-ItemProperty -Path $Key -Name $Name -Value $Value
+    }
+    elseif (-not(Test-Path -Path $Key)) {
+            Write-Log "Registry key does not exist...creating key $Key"
+            New-Item -Path $Key -Force
+            Write-Log "Registry value does not exist...setting value of $Name"
+            New-ItemProperty -Path $Key -Name $Name -PropertyType DWord -Value $Value
     }
     else {
-        Write-Log "Registry key does not exist...setting $Name value"
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name $Name -PropertyType DWord -Value $Value
+            Write-Log "Registry key does not exist....setting value of $Name"
+            New-ItemProperty -Path $Key -Name $Name -PropertyType DWord -Value $Value
     }
     Write-Log 'Successfully disabled Windows Consumer Features'
 }
@@ -122,3 +129,29 @@ catch {
     Write-Log "Unable to enable .NET Framework 3.5 ERROR: $ErrorMessage"
 }
 
+####### Customize Windows Wallpaper #######
+Write-Log 'Downloading Script Artifacts'
+$Directory = 'Build'
+$Drive = 'C:\'
+New-Item -Path $Drive -Name $Directory -ItemType Directory -ErrorAction SilentlyContinue
+$LocalPath = $Drive + '\' + $Directory
+Set-Location $LocalPath
+
+$ArtifactsURL = 'https://github.com/zheerten/AIB/raw/main/Wallpaper.zip'
+$ArtifactsURLFile = 'Wallpaper.zip'
+
+$OutputPath = $LocalPath + '\' + $ArtifactsURLFile
+Invoke-WebRequest -Uri $ArtifactsURL -OutFile $OutputPath
+Write-Log 'Expanding Archieve'
+Expand-Archive -LiteralPath $OutputPath -DestinationPath $LocalPath -Force -Verbose
+
+#Run Script
+try {
+    Write-Log 'Starting Wallpaper Customization'
+    .\Wallpaper\ChangeWallpaper.ps1
+    Write-Log 'Wallpaper Customization Complete'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong customizing system wallpaper - ERROR: $ErrorMessage"
+}
