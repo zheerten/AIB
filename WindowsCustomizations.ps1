@@ -18,8 +18,14 @@
     Description for a parameter in param definition section. Each parameter requires a separate description. The name in the description and the parameter section must match. 
 #>
 
-#region Configure Logging 
-$logFile = "c:\temp\" + (get-date -format 'yyyyMMdd') + '_AIB_WindowsCustomizations.log'
+#region Configure Logging
+$Directory = 'Build'
+$Drive = 'C:\'
+New-Item -Path $Drive -Name $Directory -ItemType Directory -ErrorAction SilentlyContinue
+$LocalPath = $Drive + $Directory
+Set-Location $LocalPath
+ 
+$logFile = $LocalPath + '\' + (get-date -format 'yyyyMMdd') + '_AIB_WindowsCustomizations.log'
 function Write-Log {
     Param($message)
     Write-Output "$(get-date -format 'yyyyMMdd HH:mm:ss') $message" | Out-File -Encoding utf8 $logFile -Append
@@ -30,11 +36,6 @@ Write-Log 'AIB Customization: Windows Settings'
 
 #region Download Artifacts
 Write-Log 'Downloading Script Artifacts'
-$Directory = 'Build'
-$Drive = 'C:\'
-New-Item -Path $Drive -Name $Directory -ItemType Directory -ErrorAction SilentlyContinue
-$LocalPath = $Drive + $Directory
-Set-Location $LocalPath
 
 $ArtifactsURL = 'https://github.com/zheerten/AIB/raw/main/Windows_Customizations.zip'
 $ArtifactsURLFile = 'Windows_Customizations.zip'
