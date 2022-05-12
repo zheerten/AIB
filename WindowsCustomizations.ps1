@@ -1,15 +1,89 @@
-﻿
+﻿<# 
+.SYNOPSIS
+    This script performs the customization of the Windows 10 operating system during the Azure Image Builder template build.
+.DESCRIPTION 
+    This script customizes the operating system according the Blue Cross and Blue Shield of Nebraska's standards.
+    This script is designed to run under "SYSTEM" context during the Azure Image Builder customization phase.
+    This script references resources stored in blob storage.  The URL contains a shared access signature (SAS) token used to grant restricted access to the resource.  These tokens expire every 2 years.
+.NOTES 
+    Information about the environment, things to need to be consider and other information.
 
-# Configure Logging 
+.COMPONENT 
+    Information about PowerShell Modules to be required.
+
+.LINK 
+    Useful Link to ressources or others.
+ 
+.Parameter ParameterName 
+    Description for a parameter in param definition section. Each parameter requires a separate description. The name in the description and the parameter section must match. 
+#>
+
+#region Configure Logging 
 $logFile = "c:\temp\" + (get-date -format 'yyyyMMdd') + '_AIB_WindowsCustomizations.log'
 function Write-Log {
     Param($message)
     Write-Output "$(get-date -format 'yyyyMMdd HH:mm:ss') $message" | Out-File -Encoding utf8 $logFile -Append
 }
+#endregion
 
 Write-Log 'AIB Customization: Windows Settings'
 
-## Disable Consumer Features
+#region Download Artifacts
+Write-Log 'Downloading Script Artifacts'
+$Directory = 'Build'
+$Drive = 'C:\'
+New-Item -Path $Drive -Name $Directory -ItemType Directory -ErrorAction SilentlyContinue
+$LocalPath = $Drive + $Directory
+Set-Location $LocalPath
+
+$ArtifactsURL = 'https://github.com/zheerten/AIB/raw/main/Windows_Customizations.zip'
+$ArtifactsURLFile = 'Windows_Customizations.zip'
+$ArtifactsURLFolder = 'Windows_Customizations'
+
+$OutputPath = $LocalPath + '\' + $ArtifactsURLFile
+Invoke-WebRequest -Uri $ArtifactsURL -OutFile $OutputPath
+Write-Log 'Expanding Archive'
+Expand-Archive -LiteralPath $OutputPath -DestinationPath $LocalPath -Force -Verbose
+Write-Log "Files downloaded and extracted to $LocalPath\$ArtifactsURLFolder"
+#endregion
+
+#region Customize Wallpaper
+try {
+    Write-Log 'Starting Wallpaper Customization'
+    .\Windows_Customizations\Wallpaper\ChangeWallpaper.ps1
+    Write-Log 'Wallpaper Customization Complete'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong customizing system wallpaper - ERROR: $ErrorMessage"
+}
+#endregion
+
+#region Remove Taskbar Search
+try {
+    Write-Log 'Removing Taskbar Search'
+    Start-Process -FilePath .\Windows_Customizations\TaskbarSearch\Deploy-Application.exe -Wait -ErrorAction Stop
+    Write-Log 'Taskbar Search Removal Complete'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong removing taskbar search - ERROR: $ErrorMessage"
+}
+#endregion
+
+#region Change Start Layout
+try {
+    Write-Log 'Changing Start Layout'
+    Import-StartLayout -LayoutPath .\Windows_Customizations\StartLayout\LayoutModification_010721.xml -MountPath C:\
+    Write-Log 'Start Layout Imported'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong importing start layout - ERROR: $ErrorMessage"
+}
+#endregion
+
+#region Disable Consumer Features
 Write-Log 'Disabling Windows Consumer Features'
 $Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
 $Name = "DisableWindowsConsumerFeatures"
@@ -35,8 +109,9 @@ catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to disable Windows Consumer Features ERROR: $ErrorMessage"
 }
+#endregion
 
-# Time Zone Redirection
+#region Time Zone Redirection
 Write-Log "Configuring Time Zone Redirection"
 $Name = "fEnableTimeZoneRedirection"
 $value = "1"
@@ -55,8 +130,9 @@ catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Error adding teams registry KEY: $ErrorMessage"
 }
+#endregion
 
-## Disable Logon Animation
+#region Disable Logon Animation
 Write-Log 'Disabling Logon Animation'
 $Name = "EnableFirstLogonAnimation"
 $Value = "0"
@@ -75,8 +151,9 @@ catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to disable Logon Animation ERROR: $ErrorMessage"
 }
+#endregion 
 
-## Show "Run as different user"
+#region Show "Run as different user"
 Write-Log 'Enabling Run As Different User'
 $Name = "ShowRunasDifferentuserinStart"
 $Value = "1"
@@ -95,8 +172,9 @@ catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to enable Run As Different User ERROR: $ErrorMessage"
 }
+#endregion
 
-## Disable SMB1"
+#region Disable SMB1"
 Write-Log 'Disabling SMB1 Protocol'
 try {
     Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart
@@ -106,8 +184,9 @@ catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to disable SMB1 Protocol ERROR: $ErrorMessage"
 }
+#endregion
 
-## Disable PowerShellv2"
+#region Disable PowerShellv2"
 Write-Log 'Disabling PowerShellv2'
 try {
     Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2 -NoRestart
@@ -117,8 +196,9 @@ catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to disable PowerShellv2 ERROR: $ErrorMessage"
 }
+#endregion
 
-## Enable .NET Framework 3.5"
+#region Enable .NET Framework 3.5"
 Write-Log 'Enabling .NET Framework 3.5'
 try {
     Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
@@ -128,30 +208,4 @@ catch {
     $ErrorMessage = $_.Exception.message
     Write-Log "Unable to enable .NET Framework 3.5 ERROR: $ErrorMessage"
 }
-
-####### Customize Windows Wallpaper #######
-Write-Log 'Downloading Script Artifacts'
-$Directory = 'Build'
-$Drive = 'C:\'
-New-Item -Path $Drive -Name $Directory -ItemType Directory -ErrorAction SilentlyContinue
-$LocalPath = $Drive + '\' + $Directory
-Set-Location $LocalPath
-
-$ArtifactsURL = 'https://github.com/zheerten/AIB/raw/main/Wallpaper.zip'
-$ArtifactsURLFile = 'Wallpaper.zip'
-
-$OutputPath = $LocalPath + '\' + $ArtifactsURLFile
-Invoke-WebRequest -Uri $ArtifactsURL -OutFile $OutputPath
-Write-Log 'Expanding Archieve'
-Expand-Archive -LiteralPath $OutputPath -DestinationPath $LocalPath -Force -Verbose
-
-#Run Script
-try {
-    Write-Log 'Starting Wallpaper Customization'
-    .\Wallpaper\ChangeWallpaper.ps1
-    Write-Log 'Wallpaper Customization Complete'
-}
-catch {
-    $ErrorMessage = $_.Exception.message
-    Write-Log "Something went wrong customizing system wallpaper - ERROR: $ErrorMessage"
-}
+#endregion
