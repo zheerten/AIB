@@ -112,7 +112,8 @@ catch {
 #region Customize Lock Screen
 try {
     Write-Log 'Starting Lock Screen Customization'
-    Copy-Item -Path ".\Windows_Customizations\Lockscreen\LockScreen.jpg" -Destination "C:\ProgramData\BCBSNE\LockScreen\" -Force -ErrorAction Stop
+    New-Item -Path C:\ProgramData\BCBSNE -Name LockScreen -ItemType Directory -ErrorAction SilentlyContinue
+    Copy-Item -Path ".\Windows_Customizations\Lockscreen\LockScreen.jpg" -Destination "C:\ProgramData\BCBSNE\LockScreen" -Force -ErrorAction Stop
     Start-Process -FilePath regedit.exe -ErrorAction Stop -ArgumentList @("/s", "`"C:\Build\Windows_Customizations\Lockscreen\LockScreen.reg`"")
     Write-Log 'Lock Screen Customization Complete'
 }
