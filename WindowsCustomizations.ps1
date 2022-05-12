@@ -166,6 +166,18 @@ catch {
 }
 #endregion
 
+#region Copy CMTrace
+try {
+    Write-Log 'Copying CMTrace to C:\Windows'
+    Copy-Item -Path ".\Windows_Customizations\CMTrace\cmtrace.exe" -Destination "C:\Windows" -Force -ErrorAction Stop
+    Write-Log 'CMTrace was copied to C:\Windows'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong copying CMTrace - ERROR: $ErrorMessage"
+}
+#endregion
+
 #region Disable Consumer Features
 Write-Log 'Disabling Windows Consumer Features'
 $Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
