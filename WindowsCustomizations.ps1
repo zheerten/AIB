@@ -83,6 +83,87 @@ catch {
 }
 #endregion
 
+#region Configure System Branding
+try {
+    Write-Log 'Configuring System Branding'
+    Copy-Item -Path ".\Windows_Customizations\SystemBranding\OEMLogo\oemlogo.bmp" -Destination "C:\Windows\System32" -Force -ErrorAction Stop
+    Start-Process -FilePath regedit.exe -ErrorAction Stop -ArgumentList @("/s", "`"C:\Build\Windows_Customizations\SystemBranding\SystemBranding.reg`"")
+    Write-Log 'System Branding Configuration Complete'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong configuring system branding - ERROR: $ErrorMessage"
+}
+#endregion
+
+#region Install Screen Saver Content
+try {
+    Write-Log 'Installing Screen Saver Content'
+    Start-Process -FilePath .\Windows_Customizations\ScreenSaver\Deploy-Application.exe -Wait -ErrorAction Stop
+    Write-Log 'Screen Saver content copied to system'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong installing screen saver content - ERROR: $ErrorMessage"
+}
+#endregion
+
+#region Customize Lock Screen
+try {
+    Write-Log 'Starting Lock Screen Customization'
+    Copy-Item -Path ".\Windows_Customizations\Lockscreen\LockScreen.jpg" -Destination "C:\ProgramData\BCBSNE\LockScreen\" -Force -ErrorAction Stop
+    Start-Process -FilePath regedit.exe -ErrorAction Stop -ArgumentList @("/s", "`"C:\Build\Windows_Customizations\Lockscreen\LockScreen.reg`"")
+    Write-Log 'Lock Screen Customization Complete'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong customizing lock screen - ERROR: $ErrorMessage"
+}
+#endregion
+
+#region Import Default App Associations
+try {
+    Write-Log 'Importing default app associations'
+    Copy-Item -Path ".\Windows_Customizations\SystemBranding\OEMLogo\oemlogo.bmp" -Destination "C:\Windows\System32" -Force -ErrorAction Stop
+    Start-Process -FilePath dism.exe -ErrorAction Stop -ArgumentList @("/online", "/Import-DefaultAppAssociations:`"C:\Build\Windows_Customizations\DefaultAppAssociation\DefaultAssociations_022420.xml`"")
+    Write-Log 'Finished importing default app assoications'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Something went wrong importing default app associations - ERROR: $ErrorMessage"
+}
+#endregion
+
+#region Import Code Signing Certificate
+Write-Log 'Importing Code Signing Certificate'
+$Key = "HKLM:\SOFTWARE\Policies\Microsoft\windows\WindowsUpdate"
+$Name = "AcceptTrustedPublisherCerts"
+$Value = "1"
+try {
+    if ((Get-ItemProperty $Key).PSObject.Properties.Name -contains $name) {
+            Write-Log "Registry key already exists...updating $Name value"
+            Set-ItemProperty -Path $Key -Name $Name -Value $Value
+    }
+    elseif (-not(Test-Path -Path $Key)) {
+            Write-Log "Registry key does not exist...creating key $Key"
+            New-Item -Path $Key -Force
+            Write-Log "Registry value does not exist...setting value of $Name"
+            New-ItemProperty -Path $Key -Name $Name -PropertyType DWord -Value $Value
+    }
+    else {
+            Write-Log "Registry key does not exist....setting value of $Name"
+            New-ItemProperty -Path $Key -Name $Name -PropertyType DWord -Value $Value
+    }
+    Import-Certificate -FilePath .\Windows_Customizations\CodeSigning\BCBSNEPRD_WSUS_Signing.cer -CertStoreLocation Cert:\LocalMachine\Root
+    Import-Certificate -FilePath .\Windows_Customizations\CodeSigning\BCBSNEPRD_WSUS_Signing.cer -CertStoreLocation Cert:\LocalMachine\TrustedPublisher
+    Write-Log 'Successfully imported code signing certificate'
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    Write-Log "Unable to import code signing certificate ERROR: $ErrorMessage"
+}
+#endregion
+
 #region Disable Consumer Features
 Write-Log 'Disabling Windows Consumer Features'
 $Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
@@ -155,16 +236,23 @@ catch {
 
 #region Show "Run as different user"
 Write-Log 'Enabling Run As Different User'
+$Key = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer"
 $Name = "ShowRunasDifferentuserinStart"
 $Value = "1"
 try {
-if ((Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer").PSObject.Properties.Name -contains $name) {
-        Write-Log "Registry key already exists...updating $Name value"
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name $Name -Value $Value
+    if ((Get-ItemProperty $Key).PSObject.Properties.Name -contains $name) {
+            Write-Log "Registry key already exists...updating $Name value"
+            Set-ItemProperty -Path $Key -Name $Name -Value $Value
+    }
+    elseif (-not(Test-Path -Path $Key)) {
+            Write-Log "Registry key does not exist...creating key $Key"
+            New-Item -Path $Key -Force
+            Write-Log "Registry value does not exist...setting value of $Name"
+            New-ItemProperty -Path $Key -Name $Name -PropertyType DWord -Value $Value
     }
     else {
-        Write-Log "Registry key does not exist...setting $Name value"
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name $Name -PropertyType DWord -Value $Value
+            Write-Log "Registry key does not exist....setting value of $Name"
+            New-ItemProperty -Path $Key -Name $Name -PropertyType DWord -Value $Value
     }
     Write-Log 'Successfully enabled Run As Different User'
 }
@@ -209,3 +297,17 @@ catch {
     Write-Log "Unable to enable .NET Framework 3.5 ERROR: $ErrorMessage"
 }
 #endregion
+
+#region Sysprep Fix
+# Fix for first login delays due to Windows Module Installer
+try {
+    ((Get-Content -path C:\DeprovisioningScript.ps1 -Raw) -replace 'Sysprep.exe /oobe /generalize /quiet /quit', 'Sysprep.exe /oobe /generalize /quit /mode:vm' ) | Set-Content -Path C:\DeprovisioningScript.ps1
+    write-log "Sysprep Mode:VM fix applied"
+}
+catch {
+    $ErrorMessage = $_.Exception.message
+    write-log "Error updating script: $ErrorMessage"
+}
+#endregion
+
+Write-Log 'AIB Customization: Windows Settings - COMPLETED'
