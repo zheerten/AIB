@@ -11,7 +11,7 @@
 
 #region Create folder / set path
 Write-Host 'AIB Customization: Installing the latest Microsoft Edge WebView 2 Plugin'
-$Directory = 'Microsoft_VC_Redistributable'
+$Directory = 'Microsoft_Edge_WebView2'
 $Path = 'C:\Build'
 New-Item -Path $Path -Name $Directory  -ItemType Directory -ErrorAction SilentlyContinue -Force
 $LocalPath = $Path + '\' + $Directory 
