@@ -26,6 +26,7 @@ try {
      Invoke-WebRequest -Uri $chromeURL -OutFile $outputPath
      Write-Host 'AIB Customization: Starting installation of the latest version of Google Chrome'
      Start-Process -filepath msiexec.exe -Wait -ErrorAction Stop -ArgumentList '/i', "$outputPath", 'REBOOT=ReallySuppress', '/qn'
+     Remove-Item -Path 'C:\Users\Public\Desktop\Google Chrome.lnk' -ErrorAction SilentlyContinue -Force
      Write-Host 'AIB Customization: Finished installing the latest version of Google Chrome'
 }
  catch {
