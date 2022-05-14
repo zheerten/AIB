@@ -25,7 +25,7 @@ try {
      $outputPath = $LocalPath + '\' + $webView2URLexe
      Invoke-WebRequest -Uri $webView2URL -OutFile $outputPath
      Write-Host 'AIB Customization: Starting installation of the latest Microsoft Edge WebView 2 Plugin'
-     Start-Process -FilePath $outputPath -Args "/install /quiet /norestart /log webview2.log" -Wait
+     Start-Process -FilePath $outputPath -Args "/silent /install" -Wait
      Write-Host 'AIB Customization: Finished installing the latest Microsoft Edge WebView 2 Plugin'
 }
  catch {
