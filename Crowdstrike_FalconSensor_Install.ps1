@@ -31,7 +31,7 @@ Write-Host 'AIB Customization: Download of CrowdStrike Falcon Sensor finished'
 #region Install Microsoft FSLogix
 try {
      Write-Host 'AIB Customization: Starting installation of the CrowdStrike Falcon Sensor'
-     Start-Process -FilePath C:\Build\CrowdStrike_Falcon\Crowdstrike_App\WindowsSensor.exe -Wait -ErrorAction Stop -ArgumentList "/install CID=8E465457F7524514B96B25C42760EB28-38 NO_START=1 VDI=1"
+     Start-Process -FilePath C:\Build\CrowdStrike_Falcon\Crowdstrike_App\WindowsSensor.exe -Wait -ErrorAction Stop -ArgumentList "/install /quiet /norestart CID=8E465457F7524514B96B25C42760EB28-38 NO_START=1 VDI=1"
      Write-Host 'AIB Customization: Finished installing the CrowdStrike Falcon Sensor'
 }
  catch {
