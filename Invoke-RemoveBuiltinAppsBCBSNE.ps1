@@ -39,11 +39,11 @@ Begin {
         "Microsoft.MSPaint",
         "Microsoft.Windows.Photos",
         "Microsoft.StorePurchaseApp",
-        "Microsoft.MicrosoftOfficeHub",
+       ## "Microsoft.MicrosoftOfficeHub",
         "Microsoft.MicrosoftStickyNotes",
         "Microsoft.WindowsAlarms",
         "Microsoft.WindowsCalculator", 
-        "Microsoft.WindowsCommunicationsApps", # Mail, Calendar etc
+       ## "Microsoft.WindowsCommunicationsApps", # Mail, Calendar etc
         "Microsoft.WindowsSoundRecorder", 
         "Microsoft.WindowsStore"
     ))
