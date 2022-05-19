@@ -26,8 +26,11 @@ try {
      $installerEXE="ccmsetup.exe"
      $installPath = $LocalPath + '\' + $installerDirectory
      $outputPath = $LocalPath + '\' + $installerFile
+     $ProgressPreference = 'SilentlyContinue'
      Invoke-WebRequest -Uri $sccmClientArtifactsURL -OutFile $outputPath
      Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath -Force
+     Remove-Item -Path $LocalPath\$installerFile -Force -ErrorAction SilentlyContinue
+     $ProgressPreference = 'Continue'
      Set-Location $installPath
 
      Write-Host 'AIB Customization: Starting installation of the SCCM Client'
