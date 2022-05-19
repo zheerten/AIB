@@ -20,7 +20,7 @@ Set-Location $LocalPath
 
 #region Install MEMCM Client
 try {
-     $sccmClientArtifactsURL = 'https://saaibfs1cushub.blob.core.windows.net/scripts/Microsoft_SCCM_Client.zip'
+     $sccmClientArtifactsURL = 'https://saaibfp1cushub.blob.core.windows.net/azure-image-builder/Microsoft_SCCM_Client.zip'
      $installerFile="Microsoft_SCCM_Client.zip"
      $installerDirectory="Microsoft_SCCM_Client"
      $installerEXE="ccmsetup.exe"
@@ -31,7 +31,8 @@ try {
      Set-Location $installPath
 
      Write-Host 'AIB Customization: Starting installation of the SCCM Client'
-     Start-Process -FilePath $installerEXE -Args "SMSSITECODE=P12 SMSCACHESIZE=30720 RESETKEYINFORMATION=TRUE DNSSUFFIX=BCBSNEPRD.COM CCMLOGMAXHISTORY=5 CCMLOGMAXSIZE=900000" -Wait
+     Start-Process -FilePath $installerEXE -Args "CCMHOSTNAME=BCBSNEHUBCMG.NEBRASKABLUE.COM/CCM_Proxy_MutualAuth/72057594037927991 SMSSITECODE=P12 SMSCACHESIZE=30720 RESETKEYINFORMATION=TRUE DNSSUFFIX=BCBSNEPRD.COM CCMLOGMAXHISTORY=5 CCMLOGMAXSIZE=900000" -Wait
+     Start-Sleep -s 300
      Write-Host 'AIB Customization: Finished installing the SCCM Client'
 }
  catch {
