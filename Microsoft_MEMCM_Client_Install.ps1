@@ -26,6 +26,7 @@ try {
      $installerEXE="ccmsetup.exe"
      $installPath = $LocalPath + '\' + $installerDirectory
      $outputPath = $LocalPath + '\' + $installerFile
+
      $ProgressPreference = 'SilentlyContinue'
      Invoke-WebRequest -Uri $sccmClientArtifactsURL -OutFile $outputPath
      Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath -Force

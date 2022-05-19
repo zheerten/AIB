@@ -20,11 +20,15 @@ Set-Location $LocalPath
 
 #region Download Crowdstrike Falcon Sensor
 Write-Host 'AIB Customization: Downloading Crowdstrike'
-$CrowdStrikeURL="https://saaibfs1cushub.blob.core.windows.net/scripts/Crowdstrike_App.zip?sp=r&st=2022-05-18T19:48:54Z&se=2025-05-19T03:48:54Z&spr=https&sv=2020-08-04&sr=b&sig=AjKgwJQeydXjzdqXmR%2F2dELyW2T7qE%2FMLumEvlKWSH0%3D"
+$CrowdStrikeURL="https://saaibfp1cushub.blob.core.windows.net/azure-image-builder/Crowdstrike_App.zip"
 $installerFile="Crowdstrike_App.zip"
 
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest $CrowdStrikeURL -OutFile $LocalPath\$installerFile
-Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath
+Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath -Force
+Remove-Item -Path $LocalPath\$installerFile -Force -ErrorAction SilentlyContinue
+$ProgressPreference = 'Continue'
+
 Write-Host 'AIB Customization: Download of CrowdStrike Falcon Sensor finished'
 #endregion
 

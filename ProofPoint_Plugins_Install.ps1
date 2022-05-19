@@ -20,23 +20,27 @@ Set-Location $LocalPath
 
 #region Download ProofPoint plugin setup files
 Write-Host 'AIB Customization: Downloading ProofPoint setup files'
-$ProofPointArtifactsURL="https://github.com/zheerten/AIB/raw/main/ProofPoint_Apps.zip"
+$ProofPointArtifactsURL="https://saaibfp1cushub.blob.core.windows.net/azure-image-builder/ProofPoint_Apps.zip"
 $installerFile="ProofPoint_Apps.zip"
 $installerDirectory="ProofPoint_Apps"
 $InstallPath = $LocalPath + '\' + $installerDirectory
 
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest $ProofPointArtifactsURL -OutFile $LocalPath\$installerFile
-Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath
+Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath -Force
+Remove-Item -Path $LocalPath\$installerFile -Force -ErrorAction SilentlyContinue
+$ProgressPreference = 'Continue'
+
 Set-Location $InstallPath
 Write-Host 'AIB Customization: Downloading ProofPoint setup files finished'
 #endregion
 
 
 #region Install ProofPoint Encryption Plugin
-$encrptionMSI = "PE_Plugin_Outlook_1.3.9.5_x64.msi"
+$encryptionMSI = "PE_Plugin_Outlook_1.3.9.5_x64.msi"
 try {
      Write-Host 'AIB Customization: Starting installation of the ProofPoint Encryption Plugin'
-     Start-Process -filepath msiexec.exe -Wait -ErrorAction Stop -ArgumentList '/i', "$encrptionMSI", 'REBOOT=ReallySuppress', '/qn'
+     Start-Process -filepath msiexec.exe -Wait -ErrorAction Stop -ArgumentList '/i', "$encryptionMSI", 'REBOOT=ReallySuppress', '/qn'
      Write-Host 'AIB Customization: Finished installing the ProofPoint Encryption Plugin'
 }
  catch {

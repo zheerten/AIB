@@ -20,18 +20,25 @@ Set-Location $LocalPath
 
 #region Download Micorosft M365 Apps for Enterprise Configuration Files
 Write-Host 'AIB Customization: Downloading M365 Apps Configuration Files'
-$M365ArtifactsURL="https://github.com/zheerten/AIB/raw/main/M365_Apps.zip"
+$M365ArtifactsURL="https://saaibfp1cushub.blob.core.windows.net/azure-image-builder/M365_Apps.zip"
 $installerFile="M365_Apps.zip"
+$installerDirectory="M365_Apps"
+$InstallPath = $LocalPath + '\' + $installerDirectory
 
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest $M365ArtifactsURL -OutFile $LocalPath\$installerFile
-Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath
+Expand-Archive $LocalPath\$installerFile -DestinationPath $LocalPath -Force
+Remove-Item -Path $LocalPath\$installerFile -Force -ErrorAction SilentlyContinue
+$ProgressPreference = 'Continue'
+
+Set-Location $InstallPath
 Write-Host 'AIB Customization: Downloading M365 Apps Configuration Files finished'
 #endregion
 
 #region Install Microsoft M365 Apps for Enterprise
 try {
      Write-Host 'AIB Customization: Starting installation of the latest version of Microsoft M365 Apps for Enterprise'
-     Start-Process -FilePath C:\Build\Microsoft_M365_Apps\M365_Apps\setup.exe -Wait -ErrorAction Stop -ArgumentList "/configure C:\Build\Microsoft_M365_Apps\M365_Apps\AVD_No_Access.xml"
+     Start-Process -FilePath "setup.exe" -Wait -ErrorAction Stop -ArgumentList "/configure AVD_No_Access.xml"
      Write-Host 'AIB Customization: Finished installing the latest version of Microsoft M365 Apps for Enterprise'
 }
  catch {
